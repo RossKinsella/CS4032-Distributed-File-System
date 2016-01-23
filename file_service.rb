@@ -18,11 +18,12 @@ class FileService
         @pool.shutdown
         exit
       end
-    # elsif message.include? "JOIN_CHATROOM:"
-    #   logger.log "Client is joining a chatroom...."
+    elsif message.include? "SEND_LOREM"
+      logger.log "Sending lorem."
+      file = File.open "lorem.html"
+      client.puts file.read
     else
       logger.log "Unsupported message."
-      client.puts "go away\nseriously, get lost\nBEGONE"
       logger.log "Did nothing."
     end
   end 
