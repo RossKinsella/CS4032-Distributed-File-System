@@ -20,3 +20,14 @@ def get_message_param message, param
   end
   res.strip
 end
+
+# For reasons I do not understand, recv() breaks when the message is large.
+def get_read_body headers
+  num_lines = get_message_param headers, "NUM_LINES"
+  lines = []
+
+  num_lines.to_i.times do
+    lines << @socket.gets
+  end
+  lines.join
+end

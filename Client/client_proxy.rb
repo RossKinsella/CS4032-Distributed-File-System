@@ -4,22 +4,23 @@ class ClientProxy
   attr_accessor :server_socket
 
   def initialize
-    @server_socket = TCPSocket.open('127.0.0.1', 33355)
+    @socket = TCPSocket.open('127.0.0.1', 33355)
   end
 
   def open file_path
-    @server_socket.puts "OPEN:\nPATH: #{file_path}"
-    @server_socket.recv(1000)
+    @socket.puts "OPEN; PATH: #{file_path}"
+    @socket.recv(1000)
   end
 
   def close
-
+    @socket.puts "CLOSE"
+    @socket.recv(1000)
   end
 
   def read
-    @server_socket.puts "READ"
+    @socket.puts "READ"
 
-    headers = @server_socket.gets()
+    headers = @socket.gets()
     status = get_message_param headers, "STATUS"
     if status == "OK"
       return get_read_body headers
@@ -29,25 +30,14 @@ class ClientProxy
   end
 
   def write content
-
+    headers = "WRITE; NUM_LINES:#{content.lines.count}"
+    @socket.puts headers << "\n" << content
+    @socket.recv(1000)
   end
 
   def disconnect
-    @server_socket.puts "DISCONNECT"
-    @server_socket.close()
+    @socket.puts "DISCONNECT"
+    @socket.close()
   end
-
-  private
-
-    # For reasons I do not understand, recv() breaks when the message is large.
-    def get_read_body headers
-      num_lines = get_message_param headers, "NUM_LINES"
-      lines = []
-
-      num_lines.to_i.times do
-        lines << @server_socket.gets
-      end
-      lines.flatten
-    end
 
 end

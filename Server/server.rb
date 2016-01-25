@@ -26,8 +26,12 @@ loop do
 
       while user.is_connected
         begin
-          message = user.socket.recv 1000
-          logger.log "//////Message: ///////\n" << message << "/////////////"
+          message = user.socket.gets()
+          if message == ""
+            logger.log "Empty message recieved. Disconnecting user."
+            user.disconnect()
+          end
+
           if message.include? "KILL_SERVICE\n"
             logger.log "Killing service"
             # Do it in a new thread to prevent deadlock
@@ -46,9 +50,8 @@ loop do
               logger.log e
             end
           end
-          logger.log "Finished handling message: " << message
+
        rescue
-         # logger.log "No message found.. Going to sleep..."
          # Dont starve the other threads you dick...
          sleep(2)
        end 

@@ -9,8 +9,6 @@ class FileService
   end
 
   def handle_messages user, message
-    @logger.log "handle messages"
-
     if message.include? "KILL_SERVICE"
       @logger.log "Killing service..."
       Thread.new do
@@ -20,36 +18,27 @@ class FileService
         exit
       end
     elsif message.include? "DISCONNECT"
+      @logger.log "Disconnecting user"
       user.disconnect()
     elsif message.include? "OPEN"
-      @logger.log "Begin open"
-      file_path = get_message_param message, "PATH"
-      file = File.open file_path
-      # Todo - what if new file, should have empty file_path.
-      if file
-        user.current_open_file = file
-        user.socket.puts "200\n"
-      else
-        user.socket.puts "error: file not found"
-      end
-      @logger.log "End open"
+      @logger.log "Opening file"
+      user.open_file message
+
     elsif message.include? "CLOSE"
-      @logger.log "Begin close"
-      file = File.open "lorem.html"
-      user.socket.puts file.read
-      @logger.log "End close"
+      @logger.log "Closing file"
+      user.close_file()
+
     elsif message.include? "READ"
-      @logger.log "Begin read"
+      @logger.log "Reading file"
       user.read_file()
-      @logger.log "End read"
+
     elsif message.include? "WRITE"
-      @logger.log "Begin write"
-      file = File.open "lorem.html"
-      user.socket.puts file.read
-      @logger.log "End write"
+      @logger.log "Writing to file"
+      user.write_to_file message
+
     else
       @logger.log "Unsupported message."
-      @logger.log "Did nothing."
+      user.socket.puts "Unsupported message"
     end
   end 
 
