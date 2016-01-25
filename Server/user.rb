@@ -3,21 +3,12 @@ require '../utils.rb'
 class User
   attr_accessor :socket, :current_open_file
 
-  CHUNK_SIZE = 1000
-
   def initialize socket
     @socket = socket
     @current_open_file = nil
   end
 
-  def new_file file_path
-    begin
-       @current_open_file = File.new file_path, "w+"
-      user.socket.puts "OK: New file created at #{file_path}\n"
-    rescue
-      user.socket.puts "Error: Cannot create file at #{file_path}\n"
-    end
-  end
+
 
   def open_file message
     file_path = get_message_param message, "PATH"
@@ -48,7 +39,7 @@ class User
 
   def write_to_file message
     begin
-x      headers = message.lines.find {|l| l.include? "WRITE"}
+      headers = message.lines.find {|l| l.include? "WRITE"}
       @current_open_file = File.open @current_open_file.path, "w"
       @current_open_file.write get_read_body headers
       @current_open_file.close()
@@ -66,5 +57,16 @@ x      headers = message.lines.find {|l| l.include? "WRITE"}
   def is_connected
     !@socket.closed?
   end
+
+  private
+
+    def new_file file_path
+      begin
+        @current_open_file = File.new file_path, "w+"
+        user.socket.puts "OK: New file created at #{file_path}\n"
+      rescue
+        user.socket.puts "Error: Cannot create file at #{file_path}\n"
+      end
+    end
 
 end
