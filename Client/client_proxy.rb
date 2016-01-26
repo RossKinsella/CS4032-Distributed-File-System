@@ -4,17 +4,17 @@ class ClientProxy
   attr_accessor :server_socket
 
   def initialize
-    @socket = TCPSocket.open('127.0.0.1', 33355)
+    @socket = TCPSocket.open '127.0.0.1', 33355
   end
 
   def open file_path
     @socket.puts "OPEN; PATH: #{file_path}"
-    @socket.recv(1000)
+    @socket.recv 1000
   end
 
   def close
     @socket.puts "CLOSE"
-    @socket.recv(1000)
+    @socket.recv 1000
   end
 
   def read
@@ -32,7 +32,7 @@ class ClientProxy
   def write content
     headers = "WRITE; NUM_LINES:#{content.lines.count}"
     @socket.puts headers << "\n" << content
-    @socket.recv(1000)
+    @socket.recv 1000
   end
 
   def disconnect
