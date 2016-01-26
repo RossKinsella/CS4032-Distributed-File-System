@@ -1,4 +1,4 @@
-class Logger
+class CustomLogger
 
   def initialize
     @enabled = true
@@ -15,7 +15,7 @@ class Logger
         @thread_ids[Thread.current.object_id] = current
         @iterator = @iterator.next
       end
-      puts "#{current}: #{message}"
+      puts "Thread ##{current}: \n#{message}\n"
     end
   end
 

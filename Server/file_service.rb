@@ -1,49 +1,48 @@
-require '../logger.rb'
 require '../utils.rb'
 
 class FileService  
 
-  def initialize(thread_pool)
-    @pool = thread_pool # TODO: Why do I do this in here... In other labs you did it in the server?
-    @logger = Logger.new
+  def initialize key
+    @key = key
   end
 
   def handle_messages user, message
-    if message.include? "KILL_SERVICE"
-      @logger.log "Killing service..."
-      Thread.new do
-        # Do it in a new thread to prevent deadlock
-        # TODO: Why do I do this in here... In other labs you did it in the server?
-        @pool.shutdown
-        exit
-      end
-    elsif message.include? "DISCONNECT"
-      @logger.log "Disconnecting user"
+    if message.include? "DISCONNECT"
+      LOGGER.log "Disconnecting user"
       user.disconnect()
-    elsif message.include? "OPEN"
-      @logger.log "Opening file"
-      user.open_file message
+      return
+    end
 
-    elsif message.include? "CLOSE"
-      @logger.log "Closing file"
+    if !message['ticket']
+      LOGGER.log "No ticket found, rejecting request."
+      user.client_socket.puts "No ticket found, your request has been rejected."
+      return
+    else
+      session_key = SimpleCipher.decrypt_message message['ticket'], @key
+      user.session_key = session_key
+      request = SimpleCipher.decrypt_message message['request'], session_key
+    end
+
+    if request.include? "OPEN"
+      LOGGER.log "Opening file"
+      user.open_file request
+
+    elsif request.include? "CLOSE"
+      LOGGER.log "Closing file"
       user.close_file()
 
-    elsif message.include? "READ"
-      @logger.log "Reading file"
+    elsif request.include? "READ"
+      LOGGER.log "Reading file"
       user.read_file()
 
-    elsif message.include? "WRITE"
-      @logger.log "Writing to file"
-      user.write_to_file message
+    elsif request.include? "WRITE"
+      LOGGER.log "Writing to file"
+      user.write_to_file request
 
     else
-      @logger.log "Unsupported message."
-      user.socket.puts "Unsupported message"
+      LOGGER.log "Unsupported message."
+      user.client_socket.puts "Unsupported message"
     end
-  end 
-
-  def generate_identifier
-    SecureRandom.uuid.gsub("-", "").hex
   end
 
 end

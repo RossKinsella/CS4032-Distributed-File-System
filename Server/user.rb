@@ -1,21 +1,19 @@
 require '../utils.rb'
 
 class User
-  attr_accessor :socket, :current_open_file
+  attr_accessor :client_socket, :current_open_file, :session_key
 
   def initialize socket
-    @socket = socket
+    @client_socket = socket
     @current_open_file = nil
   end
-
-
 
   def open_file message
     file_path = get_message_param message, "PATH"
     begin
       file = File.open file_path
       @current_open_file = file
-      @socket.puts "OK: Opened file at #{file_path}\n"
+      securely_message_client "OK: Opened file at #{file_path}\n"
     rescue
       new_file file_path
     end
@@ -23,17 +21,17 @@ class User
 
   def close_file
     @current_open_file = nil
-    @socket.puts "OK: File closed"
+    securely_message_client "OK: File closed"
   end
 
   def read_file
     if @current_open_file
       file_content = @current_open_file.read
       headers = "STATUS:OK, NUM_LINES:#{file_content.lines.count}"
-      @socket.puts headers << "\n" << file_content
+      @client_socket.puts headers << "\n" << file_content
     else
       headers = "STATUS:ERROR"
-      @socket.puts headers
+      @client_socket.puts headers
     end
   end
 
@@ -41,21 +39,21 @@ class User
     begin
       headers = message.lines.find {|l| l.include? "WRITE"}
       @current_open_file = File.open @current_open_file.path, "w"
-      @current_open_file.write get_read_body headers
+      @current_open_file.write get_read_body headers, @client_socket
       @current_open_file.close()
       @current_open_file = File.open @current_open_file.path
-      @socket.puts "OK: Write to file successful"
+      securely_message_client "OK: Write to file successful"
     rescue
-      @socket.puts "Error: A problem occured whilst writing to a file"
+      securely_message_client "Error: A problem occured whilst writing to a file"
     end
   end
 
   def disconnect
-    @socket.close()
+    @client_socket.close()
   end
 
   def is_connected
-    !@socket.closed?
+    !@client_socket.closed?
   end
 
   private
@@ -67,6 +65,10 @@ class User
       rescue
         user.socket.puts "Error: Cannot create file at #{file_path}\n"
       end
+    end
+
+    def securely_message_client message
+      client_socket.puts SimpleCipher.encrypt_message message, @session_key
     end
 
 end
