@@ -2,7 +2,6 @@ require '../utils.rb'
 require 'digest/sha1'
 
 class ClientProxy
-  attr_accessor :server_socket
 
   FILE_SERVER_NAME = 'Thor'
 
@@ -38,40 +37,68 @@ class ClientProxy
 
   def open file_path
     LOGGER.log "\n###### #{@username} is opening #{file_path} ######\n"
-    securely_message_file_server "OPEN; PATH: #{file_path}"
+    message = { :action => 'open', :path => "#{file_path}" }
+    securely_message_file_server message.to_json
     get_decrypted_file_server_response
   end
 
   def close
     LOGGER.log "\n###### #{@username} is closing his current file ######\n"
-    securely_message_file_server 'CLOSE'
+    message = { :action => 'close' }
+    securely_message_file_server message.to_json
     get_decrypted_file_server_response
   end
 
   def read
     LOGGER.log "\n###### #{@username} is reading his current file ######\n"
-    securely_message_file_server 'READ'
+    message = { :action => 'read' }
+    securely_message_file_server message.to_json
 
-    # TODO: Encrypt response
-    headers = @file_server_socket.gets()
-    status = get_message_param headers, 'STATUS'
-    if status == 'OK'
-      return get_read_body headers, @file_server_socket
+    # Check if passable to read and get file size
+    response = get_decrypted_file_server_response
+    if response['status'] == 'OK'
+      file_size = response['file_stream_size']
+
+      # Tell FileServer we are ready to begin download
+      message = { :status => 'OK' }
+      securely_message_file_server message.to_json
+
+      # Begin download
+      file = download_and_decrypt_file file_size, @authentication_data['session_key'], @file_server_socket
+      return file['file_content']
     else
-      return 'Server Error.'
+      return response
     end
   end
 
   def write content
     LOGGER.log "\n###### #{@username} is writing to his current file ######\n"
-    headers = "WRITE; NUM_LINES:#{content.lines.count}"
-    # securely_message_file_server headers << '\n' << content
-    @file_server_socket.puts headers << '\n' << content
-    get_decrypted_file_server_response
+
+    # Tell server that we want to upload how large the file will be.
+    LOGGER.log 'Informing server of write intention and stream size'
+    message = { :action => 'write',
+                :file_stream_size =>
+                    find_encrypted_file_stream_size(content, @authentication_data['session_key']) }
+    securely_message_file_server message.to_json
+
+    # Await response from server
+    response = get_decrypted_file_server_response
+    if response['status'] == 'OK'
+      # Server is ready for the upload, bombs away!
+      LOGGER.log 'Beginning to stream to server'
+      message = { :file_content => content }
+      @file_server_socket.write SimpleCipher.encrypt_message message.to_json, @authentication_data['session_key']
+
+      LOGGER.log 'Awaiting download confirmation from server'
+      return get_decrypted_file_server_response
+    else
+      return response
+    end
   end
 
   def disconnect
-    @file_server_socket.puts 'DISCONNECT'
+    message = { :action => 'disconnect' }
+    @file_server_socket.write message.to_json # Do not encrypt this.
     @file_server_socket.close()
   end
 
@@ -90,8 +117,8 @@ class ClientProxy
     end
 
     def get_decrypted_file_server_response
-      response = @file_server_socket.recv 1000
-      SimpleCipher.decrypt_message response, @authentication_data['session_key']
+      response = read_socket_stream @file_server_socket
+      JSON.parse SimpleCipher.decrypt_message response, @authentication_data['session_key']
     end
 
     def generate_authentication_request_message
@@ -116,7 +143,7 @@ class ClientProxy
       else
         authenticate()
         if @authentication_data['session_timeout'] < Time.now
-          raise "Authentication has failed. Please contact support."
+          raise 'Authentication has failed. Please contact support.'
         end
       end
     end

@@ -1,5 +1,3 @@
-require 'socket'
-require 'securerandom'
 require '../utils.rb'
 require './auth_service.rb'
 
@@ -12,7 +10,7 @@ auth_service = AuthService.new
 server = TCPServer.new(
   SERVICE_CONNECTION_DETAILS['authentication']['ip'],
   SERVICE_CONNECTION_DETAILS['authentication']['port'])
-LOGGER.log "Starting Auth Server"
+LOGGER.log 'Starting Auth Server'
 LOGGER.log "Listening on #{SERVICE_CONNECTION_DETAILS['authentication']['ip']}:#{SERVICE_CONNECTION_DETAILS['authentication']['port']}"
 
 loop do
@@ -20,16 +18,16 @@ loop do
     begin
       client_socket = server.accept_nonblock
 
-      LOGGER.log "//////////// Accepted connection ////////////////"
+      LOGGER.log '//////////// Accepted connection ////////////////'
 
       while !client_socket.closed?
         begin
           message = client_socket.gets()
-          if message == ""
-            LOGGER.log "Empty message recieved. Disconnecting client."
+          if message == ''
+            LOGGER.log 'Empty message recieved. Disconnecting client.'
             client_socket.close()
           elsif message.include? "KILL_SERVICE\n"
-            LOGGER.log "Killing service"
+            LOGGER.log 'Killing service'
             # Do it in a new thread to prevent deadlock
             Thread.new do
               pool.shutdown
