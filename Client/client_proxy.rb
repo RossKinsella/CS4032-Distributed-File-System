@@ -31,28 +31,40 @@ class ClientProxy
       @authentication_data = JSON.parse @authentication_data
       @authentication_data['session_timeout'] = Time.parse @authentication_data['session_timeout']
     else
-      LOGGER.log "Authentication failed for #{@username} on #{FILE_SERVER_NAME}"
+      raise response['content']
     end
   end
 
   def open file_path
     LOGGER.log "\n###### #{@username} is opening #{file_path} ######\n"
     message = { :action => 'open', :path => "#{file_path}" }
-    securely_message_file_server message.to_json
+    begin
+      securely_message_file_server message.to_json
+    rescue => e
+      return e
+    end
     get_decrypted_file_server_response
   end
 
   def close
     LOGGER.log "\n###### #{@username} is closing his current file ######\n"
     message = { :action => 'close' }
-    securely_message_file_server message.to_json
+    begin
+      securely_message_file_server message.to_json
+    rescue => e
+      return e
+    end
     get_decrypted_file_server_response
   end
 
   def read
     LOGGER.log "\n###### #{@username} is reading his current file ######\n"
     message = { :action => 'read' }
-    securely_message_file_server message.to_json
+    begin
+      securely_message_file_server message.to_json
+    rescue => e
+      return e
+    end
 
     # Check if passable to read and get file size
     response = get_decrypted_file_server_response
@@ -79,7 +91,11 @@ class ClientProxy
     message = { :action => 'write',
                 :file_stream_size =>
                     find_encrypted_file_stream_size(content, @authentication_data['session_key']) }
-    securely_message_file_server message.to_json
+    begin
+      securely_message_file_server message.to_json
+    rescue => e
+      return e
+    end
 
     # Await response from server
     response = get_decrypted_file_server_response

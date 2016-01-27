@@ -46,6 +46,7 @@ class AuthService
     def authenticate message
       results = {}
 
+      begin
       user_name = message['USER_NAME']
       if USERNAME_KEYS[user_name]
         stored_key = USERNAME_KEYS[user_name]
@@ -61,7 +62,9 @@ class AuthService
           results['file_server'] = decrypted_request['LOGIN']['SERVER']
         end
       end
-
+      rescue
+        results['success'] = false
+      end
       results
     end
 

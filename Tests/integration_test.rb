@@ -20,7 +20,8 @@ class IntegrationTest < Test::Unit::TestCase
     end
   end
 
-  sleep 10 # Let the servers boot up
+  LOGGER.log 'waiting to allow services to boot...'
+  sleep 4 # Let the servers boot up
 
   def test_read
     client = ClientProxy.new 'Joe', 'puppies'
@@ -38,6 +39,12 @@ class IntegrationTest < Test::Unit::TestCase
 
     assert_equal File.open('../File Server/lorem.html').read, File.open('../File Server/new-file.html').read
     File.delete '../File Server/new-file.html'
+  end
+
+  def test_auth
+    client = ClientProxy.new 'Joe', 'wrong password'
+    response = client.open 'lorem.html'
+    assert_equal response.to_s, 'The username and password did not match'
   end
 
 end
