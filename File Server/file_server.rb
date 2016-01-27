@@ -1,53 +1,59 @@
-require './file_service.rb'
-require '../utils.rb'
-require './router.rb'
-require './session.rb'
+require_relative './file_service.rb'
+require_relative '../utils.rb'
+require_relative './router.rb'
+require_relative './session.rb'
 
-pool = ThreadPool.new(10)
-file_service = FileService.new Digest::SHA1.hexdigest '__Thor__password__'
-server = TCPServer.new(
-  SERVICE_CONNECTION_DETAILS['file']['ip'],
-  SERVICE_CONNECTION_DETAILS['file']['port'])
+class FileServer
 
-LOGGER.log 'Starting File Server'
-LOGGER.log "Listening on #{SERVICE_CONNECTION_DETAILS['file']['ip']}:#{SERVICE_CONNECTION_DETAILS['file']['port']}"
+  def initialize
+    pool = ThreadPool.new(10)
+    file_service = FileService.new Digest::SHA1.hexdigest '__Thor__password__'
+    server = TCPServer.new(
+      SERVICE_CONNECTION_DETAILS['file']['ip'],
+      SERVICE_CONNECTION_DETAILS['file']['port'])
 
-loop do
-  pool.schedule do
-    begin
-      user_socket = server.accept_nonblock
-      session = Session.new user_socket, file_service
+    LOGGER.log "###############\n Starting File Server \n ###############"
+    LOGGER.log "Listening on #{SERVICE_CONNECTION_DETAILS['file']['ip']}:#{SERVICE_CONNECTION_DETAILS['file']['port']}"
 
-      LOGGER.log '//////////// Accepted connection ////////////////'
-
-      while session.is_connected
+    loop do
+      pool.schedule do
         begin
-          request = session.get_request()
-          if request == ''
-            LOGGER.log 'Empty request received. Disconnecting user.'
-            session.disconnect()
-          else
+          user_socket = server.accept_nonblock
+          session = Session.new user_socket, file_service
+
+          LOGGER.log '//////////// File Server: Accepted connection ////////////////'
+
+          while session.is_connected
             begin
-              Router.route(file_service, request, session)
-            rescue => e
-              LOGGER.log e
-              LOGGER.log e.backtrace.join "\n"
+              request = session.get_request()
+              if request == ''
+                LOGGER.log 'Empty request received. Disconnecting user.'
+                session.disconnect()
+              else
+                begin
+                  Router.route(file_service, request, session)
+                rescue => e
+                  LOGGER.log e
+                  LOGGER.log e.backtrace.join "\n"
+                end
+              end
+
+            rescue
+             # Dont starve the other threads you dick...
+             sleep(0.1)
             end
           end
 
+          LOGGER.log 'Connection to client has been lost'
+          session.disconnect()
+
         rescue
-         # Dont starve the other threads you dick...
-         sleep(2)
+          # DO NOTHING
         end
       end
-
-      LOGGER.log 'Connection to client has been lost'
-      session.disconnect()
-
-    rescue
-      # DO NOTHING
     end
-  end
-end
 
-at_exit { pool.shutdown }
+    at_exit { pool.shutdown }
+  end
+
+end

@@ -1,4 +1,4 @@
-require '../utils.rb'
+require_relative '../utils.rb'
 require 'digest/sha1'
 
 class ClientProxy

@@ -9,7 +9,6 @@ class ThreadPool
     @pool = Array.new(@size) do |i|
       Thread.new do
         Thread.current[:id] = i
-        puts "Thread #{i} has been initialized"
         catch(:exit) do
           loop do
             job, args = @jobs.pop

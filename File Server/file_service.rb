@@ -10,6 +10,7 @@ class FileService
 
   def open_file session, message
     file_path = message['path']
+    file_path = File.join File.dirname(__FILE__), file_path
     begin
       file = File.open file_path
       session.current_open_file = file
@@ -76,12 +77,12 @@ class FileService
 
     def new_file session, file_path
       begin
-        session.current_open_file = File.new file_path, "w+"
+        session.current_open_file = File.new file_path, "w"
         message = { :status => 'OK', :content => "New file created at #{file_path}" }
         session.securely_message_client message.to_json
-      rescue
+      rescue => e
         message = { :status => 'ERROR',
-                    :content => "Cannot create file at #{file_path}. Does it already exist?" }
+                    :content => "Cannot create file at #{file_path}." << e }
         session.securely_message_client message.to_json
       end
     end

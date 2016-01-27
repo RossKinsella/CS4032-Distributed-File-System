@@ -100,7 +100,7 @@ def download_streamed_file socket, file_size
       LOGGER.log "Download is at #{percent_complete}%"
       last_percentage_update = Time.now
     end
-    stream << socket.recv(1000)
+    stream << socket.recv(2500000)
   end
   
   LOGGER.log 'Download is at 100%'
