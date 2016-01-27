@@ -98,7 +98,7 @@ class ClientProxy
 
   def disconnect
     message = { :action => 'disconnect' }
-    @file_server_socket.write message.to_json # Do not encrypt this.
+    securely_message_file_server message.to_json
     @file_server_socket.close()
   end
 

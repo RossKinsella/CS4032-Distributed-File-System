@@ -9,4 +9,4 @@ puts client_proxy.close
 puts client_proxy.open "uploaded-lorem.html"
 puts client_proxy.write lorem
 
-# client_proxy.disconnect
+client_proxy.disconnect

@@ -1,9 +1,7 @@
 require './file_service.rb'
 require '../utils.rb'
-require './user.rb'
-
-# ip_address = '134.226.32.10'
-submit_id = '0105a7b6c410f4f3ae2d2acab136fa2744b7b80012e46ff3214ebb93579a1abc'
+require './router.rb'
+require './session.rb'
 
 pool = ThreadPool.new(10)
 file_service = FileService.new Digest::SHA1.hexdigest '__Thor__password__'
@@ -18,26 +16,19 @@ loop do
   pool.schedule do
     begin
       user_socket = server.accept_nonblock
-      user = User.new user_socket
+      session = Session.new user_socket, file_service
 
       LOGGER.log '//////////// Accepted connection ////////////////'
 
-      while user.is_connected
+      while session.is_connected
         begin
-          message = user.client_socket.gets()
-          if message == ''
-            LOGGER.log 'Empty message received. Disconnecting user.'
-            user.disconnect()
-          elsif message.include? "KILL_SERVICE\n"
-            LOGGER.log 'Killing service'
-            # Do it in a new thread to prevent deadlock
-            Thread.new do
-              pool.shutdown
-              exit
-            end
+          request = session.get_request()
+          if request == ''
+            LOGGER.log 'Empty request received. Disconnecting user.'
+            session.disconnect()
           else
             begin
-              file_service.handle_messages(user, JSON.parse(message))
+              Router.route(file_service, request, session)
             rescue => e
               LOGGER.log e
               LOGGER.log e.backtrace.join "\n"
@@ -50,9 +41,9 @@ loop do
         end
       end
 
-      LOGGER.log 'Disconnecting client'
-      user.disconnect
-     
+      LOGGER.log 'Connection to client has been lost'
+      session.disconnect()
+
     rescue
       # DO NOTHING
     end
