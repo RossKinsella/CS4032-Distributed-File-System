@@ -1,4 +1,4 @@
-require_relative '../utils.rb'
+require_relative '../common/utils.rb'
 require_relative './auth_service.rb'
 
 class AuthServer

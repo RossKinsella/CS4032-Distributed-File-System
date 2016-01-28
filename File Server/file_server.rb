@@ -1,11 +1,10 @@
 require_relative './file_service.rb'
-require_relative '../utils.rb'
+require_relative '../common/utils.rb'
 require_relative './file_service_router.rb'
-require_relative './session.rb'
 
 class FileServer
 
-  NAME = 'Thor'
+  NAME = SERVICE_CONNECTION_DETAILS['file']['ip'] + ':' + SERVICE_CONNECTION_DETAILS['file']['port']
   KEY = Digest::SHA1.hexdigest '__Thor__password__'
 
   def initialize
@@ -22,7 +21,7 @@ class FileServer
       pool.schedule do
         begin
           user_socket = server.accept_nonblock
-          session = Session.new user_socket, service
+          session = ServiceSession.new user_socket, service
 
           LOGGER.log '//////////// File Server: Accepted connection ////////////////'
 

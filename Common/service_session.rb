@@ -1,4 +1,4 @@
-class Session
+class ServiceSession
   attr_accessor :client_socket, :service, :current_open_file, :key
 
   def initialize socket, service
