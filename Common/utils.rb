@@ -2,9 +2,11 @@ require 'socket'
 require 'json'
 require 'time'
 require 'digest/sha1'
-require '../simple_cipher.rb'
-require '../logger.rb'
-require '../thread_pool.rb'
+require_relative './simple_cipher.rb'
+require_relative './logger.rb'
+require_relative './thread_pool.rb'
+require_relative './client_session.rb'
+require_relative './service_session.rb'
 
 SERVICE_CONNECTION_DETAILS = {
   "authentication" => {

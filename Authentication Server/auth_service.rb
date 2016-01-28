@@ -1,4 +1,4 @@
-require '../utils.rb'
+require '../common/utils.rb'
 
 class AuthService
 
@@ -9,8 +9,11 @@ class AuthService
       "Alex" => Digest::SHA1.hexdigest("42")
   }
 
+
+  file_server_name = SERVICE_CONNECTION_DETAILS['file']['ip'] + ':' + SERVICE_CONNECTION_DETAILS['file']['port']
+
   FILESERVER_KEYS = {
-      "Thor" => Digest::SHA1.hexdigest("__Thor__password__")
+      file_server_name => Digest::SHA1.hexdigest("__Thor__password__")
   }
 
   AUTH_KEY = Digest::SHA1.hexdigest "admin123"
