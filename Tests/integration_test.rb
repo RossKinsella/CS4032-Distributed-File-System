@@ -42,9 +42,8 @@ class IntegrationTest < Test::Unit::TestCase
   end
 
   def test_auth
-    client = ClientProxy.new 'Joe', 'wrong password'
-    response = client.open 'lorem.html'
-    assert_equal response.to_s, 'The username and password did not match'
+    exception = assert_raise(RuntimeError) {ClientProxy.new 'Joe', 'wrong password'}
+    assert_equal 'The username and password did not match', exception.message
   end
 
 end
