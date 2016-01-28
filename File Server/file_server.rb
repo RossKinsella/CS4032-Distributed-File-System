@@ -1,13 +1,16 @@
 require_relative './file_service.rb'
 require_relative '../utils.rb'
-require_relative './router.rb'
+require_relative './file_service_router.rb'
 require_relative './session.rb'
 
 class FileServer
 
+  NAME = 'Thor'
+  KEY = Digest::SHA1.hexdigest '__Thor__password__'
+
   def initialize
     pool = ThreadPool.new(10)
-    file_service = FileService.new Digest::SHA1.hexdigest '__Thor__password__'
+    service = FileService.new NAME, KEY
     server = TCPServer.new(
       SERVICE_CONNECTION_DETAILS['file']['ip'],
       SERVICE_CONNECTION_DETAILS['file']['port'])
@@ -19,7 +22,7 @@ class FileServer
       pool.schedule do
         begin
           user_socket = server.accept_nonblock
-          session = Session.new user_socket, file_service
+          session = Session.new user_socket, service
 
           LOGGER.log '//////////// File Server: Accepted connection ////////////////'
 
@@ -31,7 +34,7 @@ class FileServer
                 session.disconnect()
               else
                 begin
-                  Router.route(file_service, request, session)
+                  FileServiceRouter.route(service, request, session)
                 rescue => e
                   LOGGER.log e
                   LOGGER.log e.backtrace.join "\n"

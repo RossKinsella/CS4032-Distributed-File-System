@@ -1,9 +1,9 @@
 class Session
-  attr_accessor :client_socket, :file_service, :current_open_file, :key
+  attr_accessor :client_socket, :service, :current_open_file, :key
 
-  def initialize socket, file_service
+  def initialize socket, service
     @client_socket = socket
-    @file_service = file_service
+    @service = service
   end
 
   def get_request
@@ -29,7 +29,7 @@ class Session
       @client_socket.puts 'No ticket found, your request has been rejected.'
       return false
     else
-      @key = SimpleCipher.decrypt_message message['ticket'], @file_service.key
+      @key = SimpleCipher.decrypt_message message['ticket'], @service.key
       return true
     end
   end

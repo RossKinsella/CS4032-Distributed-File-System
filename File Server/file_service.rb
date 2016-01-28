@@ -2,9 +2,10 @@ require '../utils.rb'
 
 class FileService  
 
-  attr_accessor :key
+  attr_accessor :name, :key
 
-  def initialize key
+  def initialize name, key
+    @name = name
     @key = key
   end
 
