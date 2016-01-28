@@ -10,7 +10,7 @@ class AuthServer
     server = TCPServer.new(
       SERVICE_CONNECTION_DETAILS['authentication']['ip'],
       SERVICE_CONNECTION_DETAILS['authentication']['port'])
-    LOGGER.log "############### \n Starting Auth Server \n ###############"
+    LOGGER.log "\n ############### \n Starting Auth Server \n ###############"
     LOGGER.log "Listening on #{SERVICE_CONNECTION_DETAILS['authentication']['ip']}:#{SERVICE_CONNECTION_DETAILS['authentication']['port']}"
 
     loop do

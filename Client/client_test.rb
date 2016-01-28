@@ -1,7 +1,7 @@
 require 'socket'
-require './client_proxy.rb'
+require './proxy_file.rb'
 
-client_proxy = ClientProxy.new "Joe", "puppies"
+client_proxy = ProxyFile.new "Joe", "puppies"
 
 puts client_proxy.open "small_lorem.html"
 lorem = client_proxy.read

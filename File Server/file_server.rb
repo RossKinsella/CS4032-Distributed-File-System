@@ -14,7 +14,7 @@ class FileServer
       SERVICE_CONNECTION_DETAILS['file']['ip'],
       SERVICE_CONNECTION_DETAILS['file']['port'])
 
-    LOGGER.log "###############\n Starting File Server \n ###############"
+    LOGGER.log "\n ###############\n Starting File Server \n ###############"
     LOGGER.log "Listening on #{SERVICE_CONNECTION_DETAILS['file']['ip']}:#{SERVICE_CONNECTION_DETAILS['file']['port']}"
 
     loop do

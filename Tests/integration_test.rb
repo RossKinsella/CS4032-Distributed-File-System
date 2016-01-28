@@ -1,7 +1,7 @@
 require 'test/unit'
 require '../File Server/file_server'
 require '../Authentication Server/authentication_server'
-require '../Client/client_proxy'
+require '../Client/proxy_file'
 
 class IntegrationTest < Test::Unit::TestCase
 
@@ -24,25 +24,28 @@ class IntegrationTest < Test::Unit::TestCase
   sleep 4 # Let the servers boot up
 
   def test_read
-    client = ClientProxy.new 'Joe', 'puppies'
-    client.open 'lorem.html'
-    file = client.read
-    client.close
-    assert_equal file, File.open('../File Server/lorem.html').read
+    ProxyFile.login 'Joe', 'puppies'
+    file = ProxyFile.open 'lorem.html'
+    content = file.read
+    file.close
+    assert_equal content, File.open('../File Server/lorem.html').read
   end
 
   def test_write
-    client = ClientProxy.new 'Joe', 'puppies'
-    client.open 'new-file.html'
-    client.write File.open('../File Server/lorem.html').read
-    client.close
+    ProxyFile.login 'Joe', 'puppies'
+    file = ProxyFile.open 'new-file.html'
+    file.write File.open('../File Server/lorem.html').read
+    file.close
 
     assert_equal File.open('../File Server/lorem.html').read, File.open('../File Server/new-file.html').read
     File.delete '../File Server/new-file.html'
   end
 
   def test_auth
-    exception = assert_raise(RuntimeError) {ClientProxy.new 'Joe', 'wrong password'}
+    exception = assert_raise(RuntimeError) {
+      ProxyFile.login 'Joe', 'wrong password'
+      file = ProxyFile.open 'lorem.html'
+    }
     assert_equal 'The username and password did not match', exception.message
   end
 

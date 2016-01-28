@@ -15,7 +15,7 @@ class CustomLogger
         @thread_ids[Thread.current.object_id] = current
         @iterator = @iterator.next
       end
-      puts "Thread ##{current}: \n#{message}\n"
+      puts "Thread ##{current} :: #{message}\n"
     end
   end
 

@@ -1,45 +1,64 @@
 require_relative '../common/utils.rb'
 require 'digest/sha1'
 
-class ClientProxy
+class ProxyFile
+
+  attr_accessor :file_service_session
 
   FILE_SERVER_NAME = 'Thor'
 
-  def initialize username, password
-    @file_service_session = ClientSession.new(
-        SERVICE_CONNECTION_DETAILS['file']['ip'],
-        SERVICE_CONNECTION_DETAILS['file']['port'],
-        username,
-        Digest::SHA1.hexdigest(password) )
-
-    @username = username
-    @key = Digest::SHA1.hexdigest(password)
+  def initialize file_service_session
+    @file_service_session = file_service_session
   end
 
-  def open file_path
-    LOGGER.log "\n###### #{@username} is opening #{file_path} ######\n"
+  def self.login username, password
+    @@username = username
+    @@key = Digest::SHA1.hexdigest(password)
+  end
+
+  # Finds the directory information for that path, creates a ClientSession with the
+  # appropriate file server and returns a ProxyFile.
+  def self.open file_path
+    LOGGER.log "\n###### #{@@username} is opening #{file_path} ######\n"
+
+    if !self.loggedin?
+      raise 'You must first login before attempting to open a file'
+    end
+
+    file_service_session = ClientSession.new(
+        SERVICE_CONNECTION_DETAILS['file']['ip'],
+        SERVICE_CONNECTION_DETAILS['file']['port'],
+        @@username,
+        @@key)
+
     message = { :action => 'open', :path => "#{file_path}" }
     begin
-      @file_service_session.securely_message_service message.to_json
+      file_service_session.securely_message_service message.to_json
     rescue => e
       return e
     end
-    @file_service_session.get_decrypted_service_response
+    LOGGER.log file_service_session.get_decrypted_service_response
+    ProxyFile.new file_service_session
+  end
+
+  def self.loggedin?
+    @@username && @@key
   end
 
   def close
-    LOGGER.log "\n###### #{@username} is closing his current file ######\n"
+    LOGGER.log "\n###### #{@@username} is closing his current file ######\n"
     message = { :action => 'close' }
     begin
       @file_service_session.securely_message_service message.to_json
     rescue => e
       return e
     end
-    @file_service_session.get_decrypted_service_response
+    LOGGER.log @file_service_session.get_decrypted_service_response
+    @file_service_session.end
   end
 
   def read
-    LOGGER.log "\n###### #{@username} is reading his current file ######\n"
+    LOGGER.log "\n###### #{@@username} is reading his current file ######\n"
     message = { :action => 'read' }
     begin
       @file_service_session.securely_message_service message.to_json
@@ -65,7 +84,7 @@ class ClientProxy
   end
 
   def write content
-    LOGGER.log "\n###### #{@username} is writing to his current file ######\n"
+    LOGGER.log "\n###### #{@@username} is writing to his current file ######\n"
 
     # Tell server that we want to upload how large the file will be.
     LOGGER.log 'Informing server of write intention and stream size'
@@ -87,16 +106,10 @@ class ClientProxy
       @file_service_session.service_socket.write SimpleCipher.encrypt_message message.to_json, @file_service_session.authentication_data['session_key']
 
       LOGGER.log 'Awaiting download confirmation from server'
-      return @file_service_session.get_decrypted_service_response
+      LOGGER.log @file_service_session.get_decrypted_service_response
     else
-      return response
+      LOGGER.log response
     end
-  end
-
-  def disconnect
-    message = { :action => 'disconnect' }
-    @file_service_session.securely_message_service message.to_json
-    @file_server_socket.close()
   end
 
 end
