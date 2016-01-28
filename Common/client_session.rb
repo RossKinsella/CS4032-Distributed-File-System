@@ -28,6 +28,12 @@ class ClientSession
     JSON.parse SimpleCipher.decrypt_message response, @authentication_data['session_key']
   end
 
+  def end
+    message = { :action => 'disconnect' }
+    securely_message_service message.to_json
+    @service_socket.close()
+  end
+
   private
 
     def authenticate
