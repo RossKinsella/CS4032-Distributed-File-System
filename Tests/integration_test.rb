@@ -89,42 +89,6 @@ class IntegrationTest < Test::Unit::TestCase
   #   assert_equal File.open(new_file_path).read, large_file_content
   # end
 
-  def test_multithreading
-    # Simultaneous
-    joe_content_threaded = ""
-    joe = Thread.start {
-      ProxyFile.login 'Joe', 'puppies'
-      file = ProxyFile.open 'lorem.html'
-      joe_content_threaded = file.read
-      file.close
-    }
-
-    alex_content_threaded = ""
-    alex = Thread.start {
-      ProxyFile.login 'Alex', '42'
-      file = ProxyFile.open 'chinese_cinnamon'
-      alex_content_threaded = file.read
-      file.close
-    }
-    joe.join
-    alex.join
-
-    # Linear
-    ProxyFile.login 'Joe', 'puppies'
-    file = ProxyFile.open 'lorem.html'
-    joe_content_linear = file.read
-    file.close
-
-    ProxyFile.login 'Alex', '42'
-    file = ProxyFile.open 'chinese_cinnamon'
-    alex_content_linear = file.read
-    file.close
-
-    assert_not_equal alex_content_linear, joe_content_threaded
-    assert_equal joe_content_linear, joe_content_threaded
-    assert_equal alex_content_linear, alex_content_threaded
-  end
-
   def test_auth
     exception = assert_raise(RuntimeError) {
       ProxyFile.login 'Joe', 'wrong password'
