@@ -62,7 +62,6 @@ class IntegrationTest < Test::Unit::TestCase
   def test_write
     LOGGER.log "\n ###################### \n Test: ProxyFile.write \n ######################"
 
-    # Test
     ProxyFile.login 'Joe', 'puppies'
     random_file_path = generate_file_name
     file = ProxyFile.open random_file_path
@@ -71,6 +70,59 @@ class IntegrationTest < Test::Unit::TestCase
     directory_data = file.directory_data
     file_path = "../File Server/#{directory_data['file_server_name']}/#{directory_data['file_id']}"
     assert_equal File.open('../File Server/Thor/1').read, File.open(file_path).read
+  end
+
+  # Due to repo size limits I couldn't include a sample file but left this for your convenience.
+  # This takes 3 minutes on a 512mb file on my machine.
+  # def test_large_files
+  #   LOGGER.log "\n ###################### \n Test: Stream for large file \n ######################"
+  #
+  #   large_file_content = File.open('../File Server/large-file').read
+  #   random_file_path = generate_file_name
+  #
+  #   ProxyFile.login 'Joe', 'puppies'
+  #   file = ProxyFile.open random_file_path
+  #   file.write large_file_content
+  #   file.close
+  #
+  #   new_file_path = "../File Server/#{file.directory_data['file_server_name']}/#{file.directory_data['file_id']}"
+  #   assert_equal File.open(new_file_path).read, large_file_content
+  # end
+
+  def test_multithreading
+    # Simultaneous
+    joe_content_threaded = ""
+    joe = Thread.start {
+      ProxyFile.login 'Joe', 'puppies'
+      file = ProxyFile.open 'lorem.html'
+      joe_content_threaded = file.read
+      file.close
+    }
+
+    alex_content_threaded = ""
+    alex = Thread.start {
+      ProxyFile.login 'Alex', '42'
+      file = ProxyFile.open 'chinese_cinnamon'
+      alex_content_threaded = file.read
+      file.close
+    }
+    joe.join
+    alex.join
+
+    # Linear
+    ProxyFile.login 'Joe', 'puppies'
+    file = ProxyFile.open 'lorem.html'
+    joe_content_linear = file.read
+    file.close
+
+    ProxyFile.login 'Alex', '42'
+    file = ProxyFile.open 'chinese_cinnamon'
+    alex_content_linear = file.read
+    file.close
+
+    assert_not_equal alex_content_linear, joe_content_threaded
+    assert_equal joe_content_linear, joe_content_threaded
+    assert_equal alex_content_linear, alex_content_threaded
   end
 
   def test_auth

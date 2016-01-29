@@ -10,9 +10,38 @@
           "file_server_ip": "127.0.0.1",
           "file_server_port": "33355",
           "file_id": 1
+        },
+        "lithomancy": {
+          "user_name": "Joe",
+          "user_file_path": "lithomancy",
+          "file_server_name": "Thor",
+          "file_server_ip": "127.0.0.1",
+          "file_server_port": "33355",
+          "file_id": 2
+        },
+        "chinese_cinnamon": {
+          "user_name": "Joe",
+          "user_file_path": "chinese_cinnamon",
+          "file_server_name": "Thor",
+          "file_server_ip": "127.0.0.1",
+          "file_server_port": "33355",
+          "file_id": 3
+        }
+      }
+    },
+    "Alex": {
+      "user_name": "Alex",
+      "entries": {
+        "chinese_cinnamon": {
+          "user_name": "Alex",
+          "user_file_path": "chinese_cinnamon",
+          "file_server_name": "Zeus",
+          "file_server_ip": "127.0.0.1",
+          "file_server_port": "23315",
+          "file_id": 4
         }
       }
     }
   },
-  "iterator": 1
+  "iterator": 5
 }
