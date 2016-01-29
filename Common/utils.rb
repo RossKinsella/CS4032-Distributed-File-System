@@ -5,7 +5,6 @@ require 'digest/sha1'
 require 'securerandom'
 require_relative './simple_cipher.rb'
 require_relative './logger.rb'
-require_relative './thread_pool.rb'
 require_relative './client_session.rb'
 require_relative './service_session.rb'
 
