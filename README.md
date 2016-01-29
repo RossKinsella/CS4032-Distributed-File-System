@@ -3,6 +3,7 @@ All non-gem/std lib work is my own.
 Steps
 * clone the project
 * sh start.sh (I'm using ruby 2.1.2)
+* If it complains about ports, you can change them in common/utils.rb
 * This will run the tests in Tests/integration_tests.rb
 * Have a look at the logs, every message is recorded
 
