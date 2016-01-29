@@ -20,7 +20,7 @@ class ClientSession
     }
 
     @service_socket.puts message.to_json
-    LOGGER.log "#{@client_username} has just securely messaged the file server"
+    LOGGER.log "#{@client_username} has just securely messaged #{service_ip}:#{service_port}"
   end
 
   def get_decrypted_service_response

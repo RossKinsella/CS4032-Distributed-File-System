@@ -10,7 +10,7 @@ class FileService
   end
 
   def open_file session, message
-    file_path = message['path']
+    file_path = name + '/' + message['id']
     file_path = File.join File.dirname(__FILE__), file_path
     begin
       file = File.open file_path

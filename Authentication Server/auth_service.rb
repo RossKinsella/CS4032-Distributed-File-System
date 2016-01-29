@@ -9,11 +9,11 @@ class AuthService
       "Alex" => Digest::SHA1.hexdigest("42")
   }
 
-
-  file_server_name = SERVICE_CONNECTION_DETAILS['file']['ip'] + ':' + SERVICE_CONNECTION_DETAILS['file']['port']
-
-  FILESERVER_KEYS = {
-      file_server_name => Digest::SHA1.hexdigest("__Thor__password__")
+  @@service_keys = {
+      "#{get_service_id SERVICE_CONNECTION_DETAILS['file_servers'][0]}" => Digest::SHA1.hexdigest('bubbles'),
+      "#{get_service_id SERVICE_CONNECTION_DETAILS['file_servers'][1]}" => Digest::SHA1.hexdigest('panda'),
+      "#{get_service_id SERVICE_CONNECTION_DETAILS['file_servers'][2]}" => Digest::SHA1.hexdigest('kitten'),
+      "#{get_service_id SERVICE_CONNECTION_DETAILS['directory']}" => Digest::SHA1.hexdigest('LEMONS'),
   }
 
   AUTH_KEY = Digest::SHA1.hexdigest "admin123"
@@ -33,6 +33,10 @@ class AuthService
       client_socket.puts generate_failed_authentication_message
       client_socket.close()
     end  
+  end
+
+  def self.service_keys
+    @@service_keys
   end
 
   private
@@ -62,7 +66,7 @@ class AuthService
           results['success'] = true
           results['user_name'] = user_name
           results['user_key'] = stored_key
-          results['file_server'] = decrypted_request['LOGIN']['SERVER']
+          results['service'] = decrypted_request['LOGIN']['SERVER']
         end
       end
       rescue
@@ -75,10 +79,10 @@ class AuthService
       session_key = generate_key().to_s
 
       encrypted = {
-        :ticket => SimpleCipher.encrypt_message(session_key, FILESERVER_KEYS[data['file_server']]),
+        :ticket => SimpleCipher.encrypt_message(session_key, @@service_keys[data['service']]),
         :session_key => session_key,
         :session_timeout => Time.now + SIX_HOURS_IN_SECONDS,
-        :server_id => data['file_server']
+        :server_id => data['service']
       }
 
       message = {
