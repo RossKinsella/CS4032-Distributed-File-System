@@ -17,15 +17,33 @@ class DirectoryService
     LOGGER.log "Doing lookup: #{message}"
     response = @database.lookup message
     if response['status'] == 'ERROR'
-      response = @database.add_entry message
+      add_entry session, message
+    else
+      session.securely_message_client response.to_json
     end
-    session.securely_message_client response.to_json
   end
 
   def add_entry session, message
-    LOGGER.log "Adding entry lookup: #{message}"
+    LOGGER.log "Adding entry: #{message}"
     response = @database.add_entry message
     session.securely_message_client response.to_json
+    inform_lock_service_of_new_entry
+  end
+
+  def inform_lock_service_of_new_entry
+    LOGGER.log 'Directory service is about to inform the lock service of a new entry in the file system'
+    session = ClientSession.new(
+      SERVICE_CONNECTION_DETAILS['lock']['ip'],
+      SERVICE_CONNECTION_DETAILS['lock']['port'],
+      @name,
+      @key)
+
+    message = {
+      'action' => 'update_directory',
+      'directory_database_serialized' => @database.to_json
+    }
+
+    session.securely_message_service message.to_json
   end
 
 end

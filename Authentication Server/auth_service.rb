@@ -6,7 +6,9 @@ class AuthService
       "user-1" => Digest::SHA1.hexdigest("kittens123"),
       "Joe" => Digest::SHA1.hexdigest("puppies"),
       "John" => Digest::SHA1.hexdigest("xxx_lemon_pledge_xxx"),
-      "Alex" => Digest::SHA1.hexdigest("42")
+      "Alex" => Digest::SHA1.hexdigest("42"),
+      "Directory Service" => Digest::SHA1.hexdigest('LEMONS'),
+      "Lock Service" => Digest::SHA1.hexdigest('lemonade')
   }
 
   @@service_keys = {
@@ -14,6 +16,7 @@ class AuthService
       "#{get_service_id SERVICE_CONNECTION_DETAILS['file_servers'][1]}" => Digest::SHA1.hexdigest('panda'),
       "#{get_service_id SERVICE_CONNECTION_DETAILS['file_servers'][2]}" => Digest::SHA1.hexdigest('kitten'),
       "#{get_service_id SERVICE_CONNECTION_DETAILS['directory']}" => Digest::SHA1.hexdigest('LEMONS'),
+      "#{get_service_id SERVICE_CONNECTION_DETAILS['lock']}" => Digest::SHA1.hexdigest('lemonade')
   }
 
   AUTH_KEY = Digest::SHA1.hexdigest "admin123"

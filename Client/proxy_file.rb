@@ -49,7 +49,7 @@ class ProxyFile
   end
 
   def close
-    LOGGER.log "\n###### #{@@username} is closing his current file ######\n"
+    LOGGER.log "\n###### #{@@username} is closing a file ######\n"
     message = { :action => 'close' }
     begin
       @file_service_session.securely_message_service message.to_json
@@ -57,11 +57,15 @@ class ProxyFile
       return e
     end
     LOGGER.log @file_service_session.get_decrypted_service_response
+
+    if@locked
+      unlock
+    end
     @file_service_session.end
   end
 
   def read
-    LOGGER.log "\n###### #{@@username} is reading his current file ######\n"
+    LOGGER.log "\n###### #{@@username} is reading #{@directory_data['file_id']} ######\n"
     message = { :action => 'read' }
     begin
       @file_service_session.securely_message_service message.to_json
@@ -87,7 +91,11 @@ class ProxyFile
   end
 
   def write content
-    LOGGER.log "\n###### #{@@username} is writing to his current file ######\n"
+    LOGGER.log "\n###### #{@@username} is attempting to write to #{@directory_data['file_id']} ######\n"
+    if !@locked
+      LOGGER.log "\n###### #{@@username} attempt to write to #{@directory_data['file_id']} has been denied as he does not have the lock ######\n"
+      raise 'You must first acquire the lock on this file to write to it.'
+    end
 
     # Tell server that we want to upload how large the file will be.
     LOGGER.log 'Informing server of write intention and stream size'
@@ -113,6 +121,50 @@ class ProxyFile
     else
       LOGGER.log response
     end
+  end
+
+  def attempt_lock
+    LOGGER.log "\n###### #{@@username} is attempting to lock #{@directory_data['file_id']} ######\n"
+
+    session = ClientSession.new(
+      SERVICE_CONNECTION_DETAILS['lock']['ip'],
+      SERVICE_CONNECTION_DETAILS['lock']['port'],
+      @@username,
+      @@key)
+
+    message = {
+      'action' => 'lock',
+      'file_id' => @directory_data['file_id']
+    }
+
+    session.securely_message_service message.to_json
+    response = session.get_decrypted_service_response
+    if response['status'] == 'granted'
+      LOGGER.log "\n###### #{@@username} has gotten the lock for #{@directory_data['file_id']} ######\n"
+      @locked = true
+      return true
+    else
+      LOGGER.log "\n###### #{@@username} did not get the lock for #{@directory_data['file_id']} ######\n"
+      return false
+    end
+  end
+
+  def unlock
+    LOGGER.log "\n###### #{@@username} is unlocking #{@directory_data['file_id']} ######\n"
+
+    session = ClientSession.new(
+      SERVICE_CONNECTION_DETAILS['lock']['ip'],
+      SERVICE_CONNECTION_DETAILS['lock']['port'],
+      @@username,
+      @@key)
+
+    message = {
+      'action' => 'unlock',
+      'file_id' => @directory_data['file_id']
+    }
+
+    session.securely_message_service message.to_json
+    @locked = false
   end
 
   private

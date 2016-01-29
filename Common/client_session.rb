@@ -1,3 +1,5 @@
+require_relative '../Common/utils'
+
 class ClientSession
 
   attr_accessor :service_socket, :service_ip, :service_port, :client_username, :client_key, :authentication_data

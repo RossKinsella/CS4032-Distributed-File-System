@@ -80,6 +80,14 @@ class DirectoryDatabase
     save_file.close
   end
 
+  def entries
+    entries = []
+    @users.each do |user|
+      entries << user[1].entries.to_a
+    end
+    entries.flatten.each_slice(2).map(&:last)
+  end
+
   def to_hash
     hash = { 'users' => @users.to_hash, 'iterator' => @iterator }
     if hash['users']

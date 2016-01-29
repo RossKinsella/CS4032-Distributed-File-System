@@ -36,6 +36,10 @@ SERVICE_CONNECTION_DETAILS = {
   'directory' => {
       'ip' => '127.0.0.1',
       'port' => '12223'
+  },
+  'lock' => {
+      'ip' => '127.0.0.1',
+      'port' => '42882'
   }
 }
 
