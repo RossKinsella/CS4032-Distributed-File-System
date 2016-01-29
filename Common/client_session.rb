@@ -19,16 +19,18 @@ class ClientSession
       :request => SimpleCipher.encrypt_message(message, @authentication_data['session_key'])
     }
 
-    @service_socket.puts message.to_json
-    LOGGER.log "#{@client_username} has just securely messaged #{service_ip}:#{service_port}"
+    message = message.to_json
+    @service_socket.puts message
+    LOGGER.log "#{@client_username} has just securely messaged #{service_ip}:#{service_port}: #{message.truncate(180)}"
   end
 
   def get_decrypted_service_response
     LOGGER.log "#{@client_username} is waiting for a response from #{service_ip}:#{service_port}"
     response = read_socket_stream @service_socket
-    LOGGER.log "#{@client_username} has gotten a response from #{service_ip}:#{service_port}"
-
-    JSON.parse SimpleCipher.decrypt_message response, @authentication_data['session_key']
+    decrypted_response = SimpleCipher.decrypt_message response, @authentication_data['session_key']
+    
+    LOGGER.log "#{@client_username} has gotten a response from #{service_ip}:#{service_port}: #{decrypted_response.truncate(180)}"
+    JSON.parse decrypted_response
   end
 
   def end
@@ -47,9 +49,11 @@ class ClientSession
           SERVICE_CONNECTION_DETAILS['authentication']['ip'],
           SERVICE_CONNECTION_DETAILS['authentication']['port'])
 
-      @authentication_socket.puts generate_authentication_request_message
+      auth_request = generate_authentication_request_message
+      @authentication_socket.puts auth_request
+      LOGGER.log "#{client_username} has just sent #{SERVICE_CONNECTION_DETAILS['authentication']['ip']+ ':' + SERVICE_CONNECTION_DETAILS['authentication']['port']} an auth request: #{auth_request}"
       response = JSON.parse @authentication_socket.recv 10000
-
+      LOGGER.log "#{client_username} has gotten a message from #{SERVICE_CONNECTION_DETAILS['authentication']['ip']+ ':' + SERVICE_CONNECTION_DETAILS['authentication']['port']}: #{response}"
       if response['success']
         LOGGER.log "Authenticated #{ client_username } on #{@service_ip + ':' + @service_port}"
         @authentication_data = SimpleCipher.decrypt_message response['content'], @client_key

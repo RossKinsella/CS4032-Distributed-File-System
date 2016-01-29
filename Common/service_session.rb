@@ -8,7 +8,7 @@ class ServiceSession
 
   def get_request
     message = @client_socket.gets()
-    LOGGER.log "#{@service.name} has received a message"
+    
     begin
       message = JSON.parse message
     rescue => e
@@ -21,7 +21,9 @@ class ServiceSession
       raise 'Unauthorised message'
     end
 
-    JSON.parse SimpleCipher.decrypt_message message['request'], @key
+    decrypted_message = SimpleCipher.decrypt_message message['request'], @key
+    LOGGER.log LOGGER.log "#{@service.name} has received a secure message: #{decrypted_message.truncate(180)}"
+    JSON.parse decrypted_message
   end
 
   def authenticated? message
@@ -44,7 +46,7 @@ class ServiceSession
 
   def securely_message_client message
     @client_socket.write SimpleCipher.encrypt_message message, @key
-    LOGGER.log "#{@service.name} has just send a secure message"
+    LOGGER.log "#{@service.name} has just send a secure message: #{message.truncate(180)}"
   end
 
   def disconnect
