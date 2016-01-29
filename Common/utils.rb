@@ -157,3 +157,11 @@ class String
     length > max ? "#{self[0...max]}..." : self
   end
 end
+
+def generate_file_name
+  RandomWord.nouns.next
+end
+
+def generate_file_content
+  RandomWord.nouns.next + ' ' + RandomWord.adjs.next
+end

@@ -11,6 +11,11 @@ class DirectoryServiceRouter
       LOGGER.log 'Creating file entry'
       service.add_entry session, message
 
+    elsif action == 'disconnect'
+      LOGGER.log 'Disconnection request received'
+      session.disconnect
+      return
+
     elsif action == 'shut_down'
       LOGGER.log 'Killing service'
       # Do it in a new thread to prevent deadlock

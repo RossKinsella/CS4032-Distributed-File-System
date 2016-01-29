@@ -27,12 +27,10 @@ class AuthService
     if auth_results['success']
       LOGGER.log "#{message['USER_NAME']} authentication successful"
       client_socket.puts generate_successful_authentication_message auth_results
-      client_socket.close()
     else
       LOGGER.log "#{message['USER_NAME']} authentication failed"
       client_socket.puts generate_failed_authentication_message
-      client_socket.close()
-    end  
+    end
   end
 
   def self.service_keys

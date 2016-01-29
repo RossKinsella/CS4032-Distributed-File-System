@@ -1,4 +1,5 @@
 require 'test/unit'
+require '../Common/utils'
 require '../File Server/file_server'
 require '../Authentication Server/authentication_server'
 require '../Directory Server/directory_server'
@@ -33,8 +34,6 @@ class IntegrationTest < Test::Unit::TestCase
     end
   end
 
-  LOGGER.log 'waiting to allow services to boot...'
-  sleep 10 # Let the servers boot up
   # def setup
   #   directory_db = File.open '../Directory Server/database.json'
   #   @db_content = directory_db.read
@@ -46,6 +45,9 @@ class IntegrationTest < Test::Unit::TestCase
   #   directory_db.write @db_content
   #   directory_db.close
   # end
+
+  LOGGER.log 'waiting 1s to allow services to boot...'
+  sleep 1 # Let the servers boot up
 
   def test_read
     LOGGER.log "\n ###################### \n Test: ProxyFile.read \n ######################"
@@ -62,16 +64,13 @@ class IntegrationTest < Test::Unit::TestCase
 
     # Test
     ProxyFile.login 'Joe', 'puppies'
-    random_file_path = ('a'..'z').to_a.shuffle[0,8].join
+    random_file_path = generate_file_name
     file = ProxyFile.open random_file_path
     file.write File.open('../File Server/Thor/1').read
     file.close
     directory_data = file.directory_data
     file_path = "../File Server/#{directory_data['file_server_name']}/#{directory_data['file_id']}"
     assert_equal File.open('../File Server/Thor/1').read, File.open(file_path).read
-
-    # Clean up
-    File.delete file_path
   end
 
   def test_auth
@@ -83,19 +82,18 @@ class IntegrationTest < Test::Unit::TestCase
   end
 
   def test_directory_service
-    ppl = xaa + xttt
     LOGGER.log "\n ###################### \n Beginning tests for Directory service \n ######################"
-    random_file_path = RandomWord.nouns.next
+    random_file_path = generate_file_name
 
     LOGGER.log("\n ###################### \n Test: Directory service; \n 2 users may own files which share the same user_path without writing over eachothers' file \n ######################")
 
     ProxyFile.login 'Joe', 'puppies'
     joes_file = ProxyFile.open random_file_path
-    joes_file.write RandomWord.adjs.next + ' ' + RandomWord.nouns.next
+    joes_file.write generate_file_content
 
     ProxyFile.login 'Alex', '42'
     alexs_file = ProxyFile.open random_file_path
-    alexs_file.write RandomWord.adjs.next + ' ' + RandomWord.nouns.next
+    alexs_file.write generate_file_content
     assert_not_equal joes_file.read, alexs_file.read
 
     joes_file_path = "../File Server/#{joes_file.directory_data['file_server_name']}/#{joes_file.directory_data['file_id']}"
@@ -103,9 +101,9 @@ class IntegrationTest < Test::Unit::TestCase
     assert_not_equal joes_file_path, alexs_file_path
 
     LOGGER.log("\n ###################### \n Test: Directory service; \n 3 new files created sequentially will be stored on different machines \n ######################")
-    random_file_path = RandomWord.nouns.next
+    random_file_path = generate_file_name
     new_file = ProxyFile.open random_file_path
-    new_file.write RandomWord.adjs.next + ' ' +RandomWord.nouns.next
+    new_file.write generate_file_content
 
     assert_not_equal alexs_file.directory_data['file_server_name'], joes_file.directory_data['file_server_name']
     assert_not_equal new_file.directory_data['file_server_name'], joes_file.directory_data['file_server_name']

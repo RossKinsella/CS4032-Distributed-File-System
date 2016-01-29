@@ -1,1 +1,4 @@
-{"iterator": 1, "users":{"Joe":{"user_name":"Joe","entries":{"lorem.html":{"user_name":"Joe","user_file_path":"lorem.html","file_server_name":"Thor","file_server_ip":"127.0.0.1","file_server_port":"33355","file_id":1}}}}}
+{
+  "users": {},
+  "iterator": 0
+}

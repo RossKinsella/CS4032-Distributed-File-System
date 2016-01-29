@@ -18,12 +18,22 @@ class DirectoryDatabase
     if @users[request['user_name']]
       user = @users[request['user_name']]
       # Find the DirectoryEntry
-      if user.entries[request['user_file_path']]
-        entry = user.entries[request['user_file_path']]
-        return {
-          'status' => 'OK',
-          'content' => entry.to_hash
-        }
+      if user.class == DirectoryUserEntry
+        if user.entries[request['user_file_path']]
+          entry = user.entries[request['user_file_path']]
+          return {
+              'status' => 'OK',
+              'content' => entry.to_hash
+          }
+        end
+      elsif user.class == Hash
+        if user['entries'][request['user_file_path']]
+          entry = user['entries'][request['user_file_path']]
+          return {
+            'status' => 'OK',
+            'content' => entry.to_hash
+          }
+        end
       end
     end
 
@@ -101,11 +111,15 @@ class DirectoryDatabase
         user = add_user user_name
         users[user_name] = user
       end
+
+      if user.class == Hash
+        user = DirectoryUserEntry.from_json user.to_json
+      end
       user
     end
 
     def add_user user_name
-      params = { :user_name => user_name, :entries => {} }
+      params = { 'user_name' => user_name, 'entries' => {} }
       DirectoryUserEntry.new params
     end
 
