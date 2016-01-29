@@ -5,8 +5,6 @@ class ProxyFile
 
   attr_accessor :file_service_session, :directory_data
 
-  FILE_SERVER_NAME = 'Thor'
-
   def initialize file_service_session, directory_data
     @file_service_session = file_service_session
     @directory_data = directory_data
