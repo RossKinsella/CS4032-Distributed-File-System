@@ -3,12 +3,13 @@ require 'digest/sha1'
 
 class ProxyFile
 
-  attr_accessor :file_service_session
+  attr_accessor :file_service_session, :directory_data
 
   FILE_SERVER_NAME = 'Thor'
 
-  def initialize file_service_session
+  def initialize file_service_session, directory_data
     @file_service_session = file_service_session
+    @directory_data = directory_data
   end
 
   def self.login username, password
@@ -25,20 +26,22 @@ class ProxyFile
       raise 'You must first login before attempting to open a file'
     end
 
+    directory_data = get_directory_data file_path
+
     file_service_session = ClientSession.new(
-        SERVICE_CONNECTION_DETAILS['file']['ip'],
-        SERVICE_CONNECTION_DETAILS['file']['port'],
+        directory_data['file_server_ip'],
+        directory_data['file_server_port'],
         @@username,
         @@key)
 
-    message = { :action => 'open', :path => "#{file_path}" }
+    message = { :action => 'open', :id => "#{directory_data['file_id']}" }
     begin
       file_service_session.securely_message_service message.to_json
     rescue => e
       return e
     end
     LOGGER.log file_service_session.get_decrypted_service_response
-    ProxyFile.new file_service_session
+    ProxyFile.new file_service_session, directory_data
   end
 
   def self.loggedin?
@@ -111,5 +114,28 @@ class ProxyFile
       LOGGER.log response
     end
   end
+
+  private
+
+    def self.get_directory_service_session
+      ClientSession.new(
+          SERVICE_CONNECTION_DETAILS['directory']['ip'],
+          SERVICE_CONNECTION_DETAILS['directory']['port'],
+          @@username,
+          @@key)
+    end
+
+    def self.get_directory_data file_path
+      directory_session = get_directory_service_session
+      message = {
+          :action => 'lookup',
+          :user_name => "#{@@username}",
+          :user_file_path => "#{file_path}"
+      }
+      directory_session.securely_message_service message.to_json
+      data = directory_session.get_decrypted_service_response['content']
+      directory_session.end
+      data
+    end
 
 end

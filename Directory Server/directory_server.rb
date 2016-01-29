@@ -1,20 +1,21 @@
-require_relative './file_service.rb'
 require_relative '../common/utils.rb'
-require_relative './file_service_router.rb'
+require_relative './directory_service.rb'
+require_relative './directory_service_router.rb'
 
-class FileServer
+class DirectoryServer
 
-  def initialize server_details={}, key
-    name = server_details['name']
-    ip = server_details['ip']
-    port = server_details['port']
+  NAME = 'Odin'
+  KEY = Digest::SHA1.hexdigest 'LEMONS'
+
+  def initialize
 
     pool = ThreadPool.new(10)
-    service = FileService.new name, key
-    server = TCPServer.new(ip,port)
-
-    LOGGER.log "\n ###############\n Starting File Server #{name} \n ###############"
-    LOGGER.log "Listening on #{ip}:#{port}"
+    service = DirectoryService.new NAME, KEY
+    server = TCPServer.new(
+      SERVICE_CONNECTION_DETAILS['directory']['ip'],
+      SERVICE_CONNECTION_DETAILS['directory']['port'])
+    LOGGER.log "\n ############### \n Starting Directory Server \n ###############"
+    LOGGER.log "Listening on #{SERVICE_CONNECTION_DETAILS['directory']['ip']}:#{SERVICE_CONNECTION_DETAILS['directory']['port']}"
 
     loop do
       pool.schedule do
@@ -22,7 +23,7 @@ class FileServer
           user_socket = server.accept_nonblock
           session = ServiceSession.new user_socket, service
 
-          LOGGER.log '//////////// File Server: Accepted connection ////////////////'
+          LOGGER.log '//////////// Directory Server: Accepted connection ////////////////'
 
           while session.is_connected
             begin
@@ -32,7 +33,7 @@ class FileServer
                 session.disconnect()
               else
                 begin
-                  FileServiceRouter.route(service, request, session)
+                  DirectoryServiceRouter.route service, session, request
                 rescue => e
                   LOGGER.log e
                   LOGGER.log e.backtrace.join "\n"
@@ -56,5 +57,4 @@ class FileServer
 
     at_exit { pool.shutdown }
   end
-
 end

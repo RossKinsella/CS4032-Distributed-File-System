@@ -8,16 +8,39 @@ require_relative './thread_pool.rb'
 require_relative './client_session.rb'
 require_relative './service_session.rb'
 
+# File server passwords would be hidden from the world in a real environment.
+# For simplicity I have made them public though.
 SERVICE_CONNECTION_DETAILS = {
-  "authentication" => {
-    "ip" => "127.0.0.1", 
-    "port" => "37335"
+  'authentication' => {
+    'ip' => '127.0.0.1',
+    'port' => '37335'
   },
-  "file" => {
-    "ip" => "127.0.0.1", 
-    "port" => "33355"
-  }  
+  'file_servers' => [
+      {
+          'name' => 'Thor',
+          'ip' => '127.0.0.1',
+          'port' => '33355'
+      },
+      {
+          'name' => 'Zeus',
+          'ip' => '127.0.0.1',
+          'port' => '23315'
+      },
+      {
+          'name' => 'Hermes',
+          'ip' => '127.0.0.1',
+          'port' => '46778'
+      }
+  ],
+  'directory' => {
+      'ip' => '127.0.0.1',
+      'port' => '12223'
+  }
 }
+
+def get_service_id service
+  service['ip'] + ':' + service['port']
+end
 
 LOGGER = CustomLogger.new()
 
