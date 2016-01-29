@@ -24,7 +24,10 @@ class ClientSession
   end
 
   def get_decrypted_service_response
+    LOGGER.log "#{@client_username} is waiting for a response from #{service_ip}:#{service_port}"
     response = read_socket_stream @service_socket
+    LOGGER.log "#{@client_username} has gotten a response from #{service_ip}:#{service_port}"
+
     JSON.parse SimpleCipher.decrypt_message response, @authentication_data['session_key']
   end
 
@@ -32,6 +35,7 @@ class ClientSession
     message = { :action => 'disconnect' }
     securely_message_service message.to_json
     @service_socket.close()
+    @service_socket = nil
   end
 
   private
@@ -54,6 +58,8 @@ class ClientSession
       else
         raise response['content']
       end
+
+      @authentication_socket.close
     end
 
     def generate_authentication_request_message

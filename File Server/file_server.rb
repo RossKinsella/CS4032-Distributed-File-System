@@ -9,7 +9,6 @@ class FileServer
     ip = server_details['ip']
     port = server_details['port']
 
-    pool = ThreadPool.new(10)
     service = FileService.new name, key
     server = TCPServer.new(ip,port)
 
@@ -17,44 +16,29 @@ class FileServer
     LOGGER.log "Listening on #{ip}:#{port}"
 
     loop do
-      pool.schedule do
+      Thread.start(server.accept) do |user_socket|
         begin
-          user_socket = server.accept_nonblock
           session = ServiceSession.new user_socket, service
-
           LOGGER.log '//////////// File Server: Accepted connection ////////////////'
-
-          while session.is_connected
-            begin
-              request = session.get_request()
-              if request == ''
-                LOGGER.log 'Empty request received. Disconnecting user.'
-                session.disconnect()
-              else
-                begin
-                  FileServiceRouter.route(service, request, session)
-                rescue => e
-                  LOGGER.log e
-                  LOGGER.log e.backtrace.join "\n"
-                end
+          loop do
+            request = session.get_request()
+            if request == ''
+              LOGGER.log 'Empty request received. Disconnecting user.'
+              session.disconnect()
+            else
+              begin
+                FileServiceRouter.route(service, request, session)
+              rescue => e
+                LOGGER.log e
+                LOGGER.log e.backtrace.join "\n"
               end
-
-            rescue
-             # Dont starve the other threads you dick...
-             sleep(0.1)
             end
           end
-
-          LOGGER.log 'Connection to client has been lost'
-          session.disconnect()
-
-        rescue
-          # DO NOTHING
+        rescue => e
+          LOGGER.log e
         end
       end
     end
-
-    at_exit { pool.shutdown }
   end
 
 end

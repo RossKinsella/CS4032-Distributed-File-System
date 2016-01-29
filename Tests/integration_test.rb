@@ -32,8 +32,8 @@ class IntegrationTest < Test::Unit::TestCase
     end
   end
 
-  LOGGER.log 'waiting to allow services to boot...'
-  sleep 10 # Let the servers boot up
+  LOGGER.log 'waiting 1s to allow services to boot...'
+  sleep 1 # Let the servers boot up
 
   def test_read
     LOGGER.log "\n ###################### \n Test: ProxyFile.read \n ######################"

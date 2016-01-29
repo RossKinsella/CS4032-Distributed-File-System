@@ -8,6 +8,7 @@ class ServiceSession
 
   def get_request
     message = @client_socket.gets()
+    LOGGER.log "#{@service.name} has received a message"
     begin
       message = JSON.parse message
     rescue => e
@@ -42,11 +43,12 @@ class ServiceSession
   end
 
   def securely_message_client message
-    client_socket.write SimpleCipher.encrypt_message message, @key
+    @client_socket.write SimpleCipher.encrypt_message message, @key
+    LOGGER.log "#{@service.name} has just send a secure message"
   end
 
   def disconnect
-    LOGGER.log 'Disconnecting user'
+    LOGGER.log "/////////////////// #{service.name}: Disconnecting user //////////////////"
     @client_socket.close()
   end
 

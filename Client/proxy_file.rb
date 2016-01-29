@@ -134,7 +134,9 @@ class ProxyFile
       }
       directory_session.securely_message_service message.to_json
       data = directory_session.get_decrypted_service_response['content']
-      directory_session.end
+
+      message = { :action => 'disconnect' }
+      directory_session.securely_message_service message.to_json
       data
     end
 
