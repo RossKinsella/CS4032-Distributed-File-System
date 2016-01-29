@@ -151,3 +151,9 @@ end
 def generate_file_stream_message file_content
   { :file_content => file_content }.to_json
 end
+
+class String
+  def truncate(max)
+    length > max ? "#{self[0...max]}..." : self
+  end
+end

@@ -7,8 +7,10 @@ class DirectoryUserEntry
   def initialize params = {}
     @user_name = params['user_name']
     @entries = {}
-    params['entries'].each do |entry|
-      @entries[entry[0]] = DirectoryEntry.new entry[1]
+    if params['entries']
+      params['entries'].each do |entry|
+        @entries[entry[0]] = DirectoryEntry.new entry[1]
+      end
     end
   end
 
@@ -23,8 +25,10 @@ class DirectoryUserEntry
         'user_name' => @user_name,
         'entries' => @entries.to_hash
     }
-    hash['entries'].each do |entry|
-      hash['entries'][entry[0]] = entry[1].to_hash
+    if hash['entries']
+      hash['entries'].each do |entry|
+        hash['entries'][entry[0]] = entry[1].to_hash
+      end
     end
     hash
   end

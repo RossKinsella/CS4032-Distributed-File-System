@@ -1,7 +1,10 @@
 GEM
+  remote: https://rubygems.org/
   specs:
+    random-word (1.3.0)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  random-word (~> 1.3)

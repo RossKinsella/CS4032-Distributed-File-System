@@ -72,14 +72,16 @@ class DirectoryDatabase
 
   def to_hash
     hash = { 'users' => @users.to_hash, 'iterator' => @iterator }
-    hash['users'].each do |user|
-      hash['users'][user[0]] = user[1].to_hash
+    if hash['users']
+      hash['users'].each do |user|
+        hash['users'][user[0]] = user[1].to_hash
+      end
     end
     hash
   end
 
   def to_json
-    to_hash.to_json
+    JSON.pretty_generate to_hash
   end
 
   def self.from_json json
