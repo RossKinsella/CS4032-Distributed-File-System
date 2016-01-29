@@ -3,6 +3,7 @@ require '../File Server/file_server'
 require '../Authentication Server/authentication_server'
 require '../Directory Server/directory_server'
 require '../Client/proxy_file'
+require 'random-word'
 
 class IntegrationTest < Test::Unit::TestCase
 
