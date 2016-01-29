@@ -1,1 +1,1 @@
-bundle install && ruby Tests/integration_test.rb
+bundle install && cd Tests && ruby integration_test.rb

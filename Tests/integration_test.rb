@@ -1,4 +1,5 @@
-require 'test/unit'
+require 'minitest/autorun'
+require 'test/unit/assertions'
 require '../Common/utils'
 require '../File Server/file_server'
 require '../Authentication Server/authentication_server'
@@ -6,7 +7,7 @@ require '../Directory Server/directory_server'
 require '../Client/proxy_file'
 require 'random-word'
 
-class IntegrationTest < Test::Unit::TestCase
+class IntegrationTest < Minitest::Test
 
   SERVICE_CONNECTION_DETAILS['file_servers'].each do |details|
     Thread.new do
@@ -90,7 +91,7 @@ class IntegrationTest < Test::Unit::TestCase
   # end
 
   def test_auth
-    exception = assert_raise(RuntimeError) {
+    exception = assert_raises(RuntimeError) {
       ProxyFile.login 'Joe', 'wrong password'
       file = ProxyFile.open 'lorem.html'
     }
@@ -110,20 +111,20 @@ class IntegrationTest < Test::Unit::TestCase
     ProxyFile.login 'Alex', '42'
     alexs_file = ProxyFile.open random_file_path
     alexs_file.write generate_file_content
-    assert_not_equal joes_file.read, alexs_file.read
+    refute_equal joes_file.read, alexs_file.read
 
     joes_file_path = "../File Server/#{joes_file.directory_data['file_server_name']}/#{joes_file.directory_data['file_id']}"
     alexs_file_path = "../File Server/#{alexs_file.directory_data['file_server_name']}/#{alexs_file.directory_data['file_id']}"
-    assert_not_equal joes_file_path, alexs_file_path
+    refute_equal joes_file_path, alexs_file_path
 
     LOGGER.log("\n ###################### \n Test: Directory service; \n 3 new files created sequentially will be stored on different machines \n ######################")
     random_file_path = generate_file_name
     new_file = ProxyFile.open random_file_path
     new_file.write generate_file_content
 
-    assert_not_equal alexs_file.directory_data['file_server_name'], joes_file.directory_data['file_server_name']
-    assert_not_equal new_file.directory_data['file_server_name'], joes_file.directory_data['file_server_name']
-    assert_not_equal new_file.directory_data['file_server_name'], alexs_file.directory_data['file_server_name']
+    refute_equal alexs_file.directory_data['file_server_name'], joes_file.directory_data['file_server_name']
+    refute_equal new_file.directory_data['file_server_name'], joes_file.directory_data['file_server_name']
+    refute_equal new_file.directory_data['file_server_name'], alexs_file.directory_data['file_server_name']
   end
 
 end
