@@ -1,3 +1,6 @@
+All non-gem/std lib work is my own.
+
+Steps
 * clone the project
 * sh start.sh (I'm using ruby 2.1.2)
 * This will run the tests in Tests/integration_tests.rb
@@ -24,7 +27,7 @@ Use flow is as follows;
     -> returns true if the lock was granted, otherwise false
  6. file.unlock
     -> if the ProxyFile isntance holds the lock, this will message the locking service, releasing the lock.
-    
+
 
 All messages are encrypted using the Kerborose(3 key) method.
 All services are multi-threaded and can keep taking new connections until it falls over due to spam mem-swaps
