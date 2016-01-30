@@ -59,6 +59,11 @@ class DirectoryDatabase
 
     begin
       entry = user.create_entry new_entry_params
+      if @users[request['user_name']].entries.class == Array
+        @users[request['user_name']]['entries'][entry.user_file_path] = entry.to_hash
+      else
+        @users[request['user_name']].entries[entry.user_file_path] = entry
+      end
       save
       return {
         'status' => 'OK',

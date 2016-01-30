@@ -84,6 +84,29 @@ class IntegrationTest < Minitest::Test
     assert_equal File.open('../File Server/Thor/1').read, File.open(file_path).read
   end
 
+  def test_directory_syncronization
+    same_file_one = nil
+    same_file_two = nil
+
+    ProxyFile.login 'user-1', 'kittens123'
+    random_file_path = generate_file_name
+
+    t1= Thread.new do
+      same_file_one = ProxyFile.open random_file_path
+    end
+
+    t2= Thread.new do
+      same_file_two = ProxyFile.open random_file_path
+    end
+
+    t1.join
+    t2.join
+
+    assert_equal same_file_one.directory_data['file_id'], same_file_two.directory_data['file_id']
+    same_file_one.close
+    same_file_two.close
+  end
+
   def test_locking
     LOGGER.log "\n ###################### \n Test: LockingService.attempt_lock \n ######################"
 
@@ -96,6 +119,7 @@ class IntegrationTest < Minitest::Test
     second_file_instance = ProxyFile.open random_file_path
     second_lock_status = second_file_instance.attempt_lock
 
+    assert_equal first_file_instance.directory_data['file_id'], second_file_instance.directory_data['file_id']
     assert_equal first_lock_status, true
     assert_equal second_lock_status, false
 
@@ -111,6 +135,9 @@ class IntegrationTest < Minitest::Test
     second_file_instance.write new_file_content
 
     assert_equal second_file_instance.read, new_file_content
+
+    second_file_instance.close
+    first_file_instance.close
   end
 
   # Due to repo size limits I couldn't include a sample file but left this for your convenience.

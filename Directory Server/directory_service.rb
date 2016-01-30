@@ -11,15 +11,19 @@ class DirectoryService
 
     database_file_path = File.join File.dirname(__FILE__), 'database.json'
     @database = DirectoryDatabase.from_json File.open(database_file_path).read
+
+    @directory_semaphore = Mutex.new
   end
 
   def lookup session, message
-    LOGGER.log "Doing lookup: #{message}"
-    response = @database.lookup message
-    if response['status'] == 'ERROR'
-      add_entry session, message
-    else
-      session.securely_message_client response.to_json
+    @directory_semaphore.synchronize do 
+      LOGGER.log "Doing lookup: #{message}"
+      response = @database.lookup message
+      if response['status'] == 'ERROR'
+        add_entry session, message
+      else
+        session.securely_message_client response.to_json
+      end
     end
   end
 
